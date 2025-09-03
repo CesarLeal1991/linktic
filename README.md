@@ -1,175 +1,92 @@
-# Linktic Microservicios
+# Linktic - Microservicios Productos e Inventario
 
-## Descripción
-
+## 1. Descripción
 Este proyecto implementa dos microservicios independientes que interactúan entre sí:
 
-1. **Productos**: gestión de productos.
-2. **Inventario**: control del inventario y proceso de compras.
+- **Productos**: gestión completa de productos (CRUD).
+- **Inventario**: gestión de inventario, compras y consulta de cantidades disponibles.
 
-El proyecto utiliza **SQLite** como base de datos para simplicidad y facilidad de configuración. La comunicación entre microservicios se realiza mediante HTTP y sigue el estándar **JSON API**.
+Se utiliza **JSON API** para todas las respuestas, SQLite como base de datos, y comunicación HTTP entre servicios mediante API keys.
 
-Se utilizó **GPT-5** para acelerar tareas de desarrollo y **Git** para control de versiones, siguiendo buenas prácticas de Git Flow.
-
----
-
-## Arquitectura
-
-```
-+-------------------+          +-------------------+
-| Microservicio     |  HTTP    | Microservicio     |
-| Productos         | <------> | Inventario        |
-|-------------------|          |-------------------|
-| CRUD productos    |          | Consultar stock   |
-|                   |          | Actualizar stock  |
-|                   |          | Registrar compra  |
-+-------------------+          +-------------------+
-          ^                             ^
-          |                             |
-          +--------- SQLite ------------+
-```
-
-- Cada microservicio tiene su propia API.
-- Inventario consulta Productos para validar existencia antes de procesar compras.
+Repositorio en GitHub: [https://github.com/CesarLeal1991/linktic](https://github.com/CesarLeal1991/linktic)
 
 ---
 
-## Microservicio Productos
-
-**Modelo Producto**:
-- `id` (Long)
-- `nombre` (String)
-- `precio` (Double)
-- `descripcion` (String, opcional)
-
-**Endpoints**:
-- `POST /productos` → Crear producto
-- `GET /productos/{id}` → Obtener producto por ID
-- `GET /productos` → Listar productos
-- `PUT /productos/{id}` → Actualizar producto
-- `DELETE /productos/{id}` → Eliminar producto
+## 2. Tecnologías usadas
+- Lenguaje: Java (Spring Boot)
+- Base de datos: SQLite (ligera, portable y fácil de configurar)
+- Docker / Docker Compose para contenerización
+- Testing: JUnit 5 + Mockito
+- IA: GPT-5 para acelerar generación de código y mejorar calidad
+- Control de versiones: Git + Git Flow
 
 ---
 
-## Microservicio Inventario
+## 3. Estructura de los Microservicios
 
-**Modelo Inventario**:
-- `productoId` (Long)
-- `cantidad` (Integer)
+### 3.1 Microservicio Productos
+**Proyecto independiente:** `microservicio-productos`
+- **Modelo Producto**:
+    - `id`: Long
+    - `nombre`: String
+    - `precio`: Double
+    - `descripcion` (opcional): String
+- **Endpoints**:
+    - `POST /productos` - Crear producto
+    - `GET /productos/{id}` - Obtener producto por ID
+    - `GET /productos` - Listar todos los productos
+    - `PUT /productos/{id}` - Actualizar producto
+    - `DELETE /productos/{id}` - Eliminar producto
 
-**Endpoints**:
-- `GET /inventario` → Listar inventario
-- `GET /inventario/{productoId}` → Consultar cantidad de un producto
-- `PUT /inventario/{productoId}` → Actualizar cantidad disponible
-- `POST /inventario/compra` → Registrar compra y descontar stock
-- `GET /inventario/total` → Inventario total (opcional)
-
-**Flujo de Compra**:
-1. Recibe `productoId` y `cantidad`.
-2. Valida existencia del producto en microservicio Productos.
-3. Verifica inventario suficiente.
-4. Descuenta la cantidad comprada.
-5. Retorna información de la compra.
-6. Manejo de errores:
-    - Producto inexistente → 404
-    - Inventario insuficiente → 400
-    - Error interno → 500
-
----
-
-## Base de datos
-
-- SQLite para ambos microservicios.
-- Justificación: ligera, sin configuración de servidor adicional, ideal para pruebas locales y demostraciones.
+### 3.2 Microservicio Inventario
+**Proyecto independiente:** `microservicio-inventario`
+- **Modelo Inventario**:
+    - `producto_id`: Long
+    - `cantidad`: Integer
+- **Endpoints**:
+    - `GET /inventario` - Listar todos los inventarios
+    - `GET /inventario/{productoId}` - Consultar cantidad de un producto
+    - `PUT /inventario/{productoId}` - Actualizar cantidad disponible
+    - `POST /inventario/compra` - Registrar una compra
+    - `GET /inventario/total` - Consultar inventario total
 
 ---
 
-## Colección de Postman
+## 4. Flujo de Compra
+1. Se realiza la solicitud `POST /inventario/compra` con `productoId` y `cantidad`.
+2. Se verifica existencia del producto en el microservicio Productos.
+3. Se valida disponibilidad en Inventario.
+4. Se descuenta la cantidad comprada del inventario.
+5. Se retorna un JSON con:
+    - `productoId`
+    - `cantidadComprada`
+    - `cantidadRestante`
+    - `id` del inventario actualizado
 
-Se incluye una colección de Postman para probar todos los endpoints de los microservicios.
-
-- Archivo: `postman/Linktic.postman_collection.json`
-- Contiene requests para:
-    - **Productos**: Crear, listar, obtener, actualizar y eliminar producto.
-    - **Inventario**: Listar inventario, consultar cantidad de producto, registrar compra, obtener inventario total.
-- Uso:
-    1. Importar la colección en Postman.
-    2. Ejecutar los endpoints según la secuencia de prueba.
-    3. Autenticación básica mediante API key entre servicios.
-
----
-
-## Requisitos técnicos
-
-- **Lenguaje**: Java (Spring Boot)
-- **JSON API**: Para todas las respuestas.
-- **Docker**: Cada microservicio containerizado.
-- **Pruebas unitarias**: Cobertura de creación de productos, gestión de inventario, compras y comunicación entre servicios.
-- **Prueba de integración**: Al menos una por microservicio.
+**Decisión técnica:**  
+El endpoint de compra se implementó en el microservicio **Inventario** para mantener responsabilidad única (Inventario gestiona la cantidad disponible) y minimizar acoplamiento con Productos.
 
 ---
 
-## IA y herramientas de desarrollo
-
-- Se utilizó **GPT-5** para generar ejemplos de endpoints, pruebas unitarias y acelerar desarrollo de lógica repetitiva.
-- Verificación de calidad:
-    - Revisión manual del código generado.
-    - Ejecución de pruebas unitarias y de integración.
+## 5. Comunicación entre Microservicios
+- HTTP + JSON API
+- Autenticación con API Key (configurable en variables de entorno)
+- Timeout y reintentos básicos implementados con WebClient
 
 ---
 
-## Instrucciones de instalación y ejecución
+## 6. Base de Datos
+- SQLite
+- Justificación: ligera, fácil de configurar para pruebas locales y microservicios pequeños.
+- Archivo de base de datos incluido en cada servicio.
 
-1. Clonar el repositorio:
+---
 
-```bash
-git clone https://github.com/CesarLeal1991/linktic.git
-cd linktic
-```
+## 7. Dockerización
+- Cada microservicio tiene su **Dockerfile**.
+- Se recomienda usar **Docker Compose** para levantar ambos servicios simultáneamente.
 
-2. Construir y ejecutar con Maven:
-
-```bash
-cd productos
-./mvnw clean install
-./mvnw spring-boot:run
-```
-
-```bash
-cd inventario
-./mvnw clean install
-./mvnw spring-boot:run
-```
-
-3. Alternativamente, usar Docker Compose (si los archivos `Dockerfile` y `docker-compose.yml` están configurados):
+Ejemplo de ejecución:
 
 ```bash
 docker-compose up --build
-```
-
----
-
-## Decisiones técnicas
-
-- **Endpoint de compra** se implementa en **Inventario** porque:
-    - Mantiene la responsabilidad de gestionar stock.
-    - Reduce acoplamiento con Productos.
-    - Facilita consistencia de datos y manejo de errores locales de inventario.
-- **SQLite** elegido por su simplicidad para pruebas locales.
-- **JSON API** garantiza consistencia en respuestas y compatibilidad futura.
-
----
-
-## Diagramas
-
-- Arquitectura de microservicios y flujo de compra incluidos en la sección **Arquitectura** arriba.
-- Se recomienda ampliar con herramientas como Draw.io o diagrams.net si se desea.
-
----
-
-## Buenas prácticas implementadas
-
-- Control de versiones con **Git** siguiendo Git Flow.
-- Pruebas unitarias e integración.
-- Manejo de errores y validaciones.
-- Documentación de endpoints y flujo de compra.
