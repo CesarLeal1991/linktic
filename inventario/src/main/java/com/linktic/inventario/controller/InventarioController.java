@@ -3,6 +3,7 @@ package com.linktic.inventario.controller;
 import com.linktic.inventario.api.JsonApi;
 import com.linktic.inventario.model.Inventario;
 import com.linktic.inventario.service.InventarioService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,31 +22,24 @@ public class InventarioController {
 
     private final InventarioService service;
     private final WebClient productosClient;
-    private final String apiKey;
-    private final int timeoutMillis;
 
-    // Constructor principal
-    public InventarioController(InventarioService service, WebClient productosClient,
-                                String apiKey, int timeoutMillis) {
+    @Value("${productos.api.key}")
+    private String apiKey;
+
+    @Value("${productos.api.timeout}")
+    private int timeoutMillis;
+
+    public InventarioController(InventarioService service, WebClient productosWebClient) {
         this.service = service;
-        this.productosClient = productosClient;
-        this.apiKey = apiKey;
-        this.timeoutMillis = timeoutMillis;
+        this.productosClient = productosWebClient;
     }
 
-    // Constructor simple con timeout por defecto
-    public InventarioController(InventarioService service, WebClient productosClient, String apiKey) {
-        this(service, productosClient, apiKey, 3000);
-    }
-
-    // Listar todos los inventarios
     @GetMapping
     public ResponseEntity<?> listarTodos() {
         List<Inventario> inventario = service.getAll();
         return ResponseEntity.ok(inventario);
     }
 
-    // Obtener cantidad por producto
     @GetMapping("/{productoId}")
     public ResponseEntity<?> getCantidad(@PathVariable Long productoId) {
         Optional<Inventario> inv = service.getByProductoId(productoId);
@@ -53,15 +47,12 @@ public class InventarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(JsonApi.error("Not found", "Inventario para producto " + productoId + " no existe"));
         }
-
         Map<String, Object> attrs = new HashMap<>();
         attrs.put("productoId", inv.get().getProductoId());
         attrs.put("cantidad", inv.get().getCantidad());
-
         return ResponseEntity.ok(JsonApi.single("inventario", inv.get().getId(), attrs));
     }
 
-    // Actualizar cantidad
     @PutMapping("/{productoId}")
     public ResponseEntity<?> actualizar(@PathVariable Long productoId, @RequestBody Map<String, Integer> body) {
         Integer cantidad = body.getOrDefault("cantidad", 0);
@@ -74,7 +65,6 @@ public class InventarioController {
         return ResponseEntity.ok(JsonApi.single("inventario", inv.getId(), attrs));
     }
 
-    // Comprar
     @PostMapping("/compra")
     public ResponseEntity<?> comprar(@RequestBody Map<String, Object> body) {
         Long productoId;
@@ -90,7 +80,6 @@ public class InventarioController {
             cantidad = Integer.valueOf(String.valueOf(body.get("cantidad")));
         }
 
-        // 1) Validar producto existe en Productos service
         try {
             Mono<Map> respMono = productosClient.get()
                     .uri("/productos/{id}", productoId)
@@ -109,7 +98,6 @@ public class InventarioController {
                     .body(JsonApi.error("Producto no encontrado", "Producto con id " + productoId + " no existe o servicio inaccesible"));
         }
 
-        // 2) Verificar inventario y actualizar
         try {
             Inventario updated = service.descontar(productoId, cantidad);
 

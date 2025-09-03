@@ -1,30 +1,33 @@
-package com.linktic.inventario.security;
+package com.linktic.inventario.filter;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import java.io.IOException;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
+import reactor.core.publisher.Mono;
 
 @Component
-public class ApiKeyFilter implements Filter {
+public class ApiKeyFilter implements WebFilter {
 
-    @Value("${services.api-key}")
-    private String expected;
+    // Usar la propiedad que ya definiste en application.properties
+    @Value("${productos.api.key}")
+    private String apiKey;
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        HttpServletRequest r = (HttpServletRequest) request;
-        String apiKey = r.getHeader("X-API-KEY");
-        // permitir endpoints públicos si lo deseas (e.g., health). Aquí protegemos todo.
-        if (expected != null && expected.equals(apiKey)) {
-            chain.doFilter(request, response);
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        // Validar que la cabecera "X-API-KEY" coincida con la clave esperada
+        String requestApiKey = exchange.getRequest()
+                .getHeaders()
+                .getFirst("X-API-KEY");
+
+        if (apiKey.equals(requestApiKey)) {
+            // Si es correcta, continuar con la petición
+            return chain.filter(exchange);
         } else {
-            HttpServletResponse resp = (HttpServletResponse) response;
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.setContentType("application/json");
-            resp.getWriter().write("{\"errors\":[{\"title\":\"Unauthorized\",\"detail\":\"Missing or invalid API key\"}]}");
+            // Si no es correcta, devolver 401 Unauthorized
+            exchange.getResponse().setStatusCode(org.springframework.http.HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
         }
     }
 }

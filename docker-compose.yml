@@ -10,7 +10,7 @@ services:
       - SPRING_PROFILES_ACTIVE=default
       - SERVICES_API_KEY=123456789
     volumes:
-      - productos-data:/app/data  # Montamos sobre un directorio
+      - productos-data:/app/data
 
   inventario:
     build: ./inventario
@@ -19,12 +19,12 @@ services:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=default
-      - SERVICES_API_KEY=123456789
-      - PRODUCTOS_SERVICE_URL=http://productos:8080
+      - SERVICES_API_KEY=123456789   # Coincide con @Value("${services.api-key}")
+      - PRODUCTOS_SERVICE_URL=http://productos:8080  # Coincide con @Value("${productos.service.url}")
     depends_on:
       - productos
     volumes:
-      - inventario-data:/app/data  # Montamos sobre un directorio
+      - inventario-data:/app/data
 
 volumes:
   productos-data:

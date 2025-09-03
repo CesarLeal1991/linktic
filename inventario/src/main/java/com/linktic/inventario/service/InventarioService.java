@@ -11,35 +11,38 @@ import java.util.Optional;
 @Service
 public class InventarioService {
 
-    private final InventarioRepository repo;
+    private final InventarioRepository repository;
 
-    public InventarioService(InventarioRepository repo) {
-        this.repo = repo;
-    }
-
-    public Optional<Inventario> getByProductoId(Long productoId) {
-        return repo.findByProductoId(productoId);
+    public InventarioService(InventarioRepository repository) {
+        this.repository = repository;
     }
 
     public List<Inventario> getAll() {
-        return repo.findAll();
+        return repository.findAll();
+    }
+
+    public Optional<Inventario> getByProductoId(Long productoId) {
+        return repository.findByProductoId(productoId);
     }
 
     @Transactional
-    public Inventario updateCantidad(Long productoId, int nuevaCantidad) {
-        Inventario inv = repo.findByProductoId(productoId).orElseGet(() -> {
-            Inventario i = new Inventario(productoId, 0);
-            return i;
-        });
-        inv.setCantidad(nuevaCantidad);
-        return repo.save(inv);
+    public Inventario updateCantidad(Long productoId, Integer cantidad) {
+        Inventario inv = repository.findByProductoId(productoId)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado en inventario"));
+        inv.setCantidad(cantidad);
+        return repository.save(inv);
     }
 
     @Transactional
-    public Inventario descontar(Long productoId, int cantidad) {
-        Inventario inv = repo.findByProductoId(productoId).orElseThrow(() -> new IllegalArgumentException("Inventario no encontrado"));
-        if (inv.getCantidad() < cantidad) throw new IllegalStateException("Inventario insuficiente");
+    public Inventario descontar(Long productoId, Integer cantidad) {
+        Inventario inv = repository.findByProductoId(productoId)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado en inventario"));
+
+        if (inv.getCantidad() < cantidad) {
+            throw new IllegalStateException("Cantidad insuficiente en inventario");
+        }
+
         inv.setCantidad(inv.getCantidad() - cantidad);
-        return repo.save(inv);
+        return repository.save(inv);
     }
 }
