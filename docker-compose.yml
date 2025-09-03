@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  productos:
+    build: ./productos
+    container_name: productos
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVICES_API_KEY=123456789
+    volumes:
+      - productos-data:/app/data  # Montamos sobre un directorio
+
+  inventario:
+    build: ./inventario
+    container_name: inventario
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVICES_API_KEY=123456789
+      - PRODUCTOS_SERVICE_URL=http://productos:8080
+    depends_on:
+      - productos
+    volumes:
+      - inventario-data:/app/data  # Montamos sobre un directorio
+
+volumes:
+  productos-data:
+  inventario-data:
