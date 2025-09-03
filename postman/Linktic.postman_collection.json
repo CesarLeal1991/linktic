@@ -1,0 +1,263 @@
+{
+	"info": {
+		"_postman_id": "87a6baa6-eb3d-4a7a-83a8-ddbc0edd75bf",
+		"name": "Linktic",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13001275",
+		"_collection_link": "https://gold-crescent-285961.postman.co/workspace/My-Workspace~3139ceb3-aceb-4e1b-8f78-a8a55490924c/collection/13001275-87a6baa6-eb3d-4a7a-83a8-ddbc0edd75bf?action=share&source=collection_link&creator=13001275"
+	},
+	"item": [
+		{
+			"name": "Productos",
+			"item": [
+				{
+					"name": "Obtener Producto",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host_productos}}/productos/1",
+							"host": [
+								"{{host_productos}}"
+							],
+							"path": [
+								"productos",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Producto",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Laptop\",\r\n  \"precio\": 1900.0,\r\n  \"descripcion\": \"Laptop gamer\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host_productos}}/productos/1",
+							"host": [
+								"{{host_productos}}"
+							],
+							"path": [
+								"productos",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar Producto",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host_productos}}/productos/1",
+							"host": [
+								"{{host_productos}}"
+							],
+							"path": [
+								"productos",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Inventario",
+			"item": [
+				{
+					"name": "Listar Inventario",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"cantidad\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host_inventario}}/inventario/1",
+							"host": [
+								"{{host_inventario}}"
+							],
+							"path": [
+								"inventario",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cantidad De Inventarios",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"cantidad\": 20\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host_inventario}}/inventario/2",
+							"host": [
+								"{{host_inventario}}"
+							],
+							"path": [
+								"inventario",
+								"2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Registrar Compra",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"productoId\": 1,\r\n  \"cantidad\": 5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host_inventario}}/inventario/compra",
+							"host": [
+								"{{host_inventario}}"
+							],
+							"path": [
+								"inventario",
+								"compra"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Traer Inventario total",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-KEY",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{host_inventario}}/inventario",
+							"host": [
+								"{{host_inventario}}"
+							],
+							"path": [
+								"inventario"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host_productos",
+			"value": ""
+		},
+		{
+			"key": "host_inventario",
+			"value": ""
+		},
+		{
+			"key": "api_key",
+			"value": ""
+		}
+	]
+}
